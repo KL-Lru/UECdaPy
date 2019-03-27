@@ -1,5 +1,5 @@
 # UECdaPy
-UECdaのPython版標準クライアント(作成中)です
+UECdaのPython版標準クライアント開発版第一弾です
 
 ## 作成環境
 - 言語
