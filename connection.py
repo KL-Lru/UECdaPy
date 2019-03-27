@@ -1,20 +1,11 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import print_function, division
 import socket
 from struct import Struct
 from utils import parseInformation
 import numpy as np
 
-# import pandas as pd
-
 # Struct --------------------
 integer_struct = Struct('!1I')
 table_struct   = Struct('!120I')
-
-# DataFrame -----------------
-# cardTableIndex = ['♠', '♥', '♦', '♣', 'J']
-# cardTableCols  = ['Jw', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2', 'Js']
 
 # Global Variable -----------
 sock = None
@@ -40,8 +31,6 @@ def connect(client, host = '127.0.0.1', port = 42485):
 
     try:
         # 初期化
-        # field = makeDataFrame(np.zeros((5,15), dtype = int))
-        # hand  = makeDataFrame(np.zeros((5,15), dtype = int))
         field  = np.zeros((5,15), dtype = int)
         hand   = np.zeros((5,15), dtype = int)
         submit = np.zeros((8,15), dtype = int)
@@ -80,37 +69,22 @@ def connect(client, host = '127.0.0.1', port = 42485):
 
                     sendTable(submit)
                     accept = recvInt()
+                    """
+                    # for debug
                     if accept != 9 and not np.alltrue(submit == 0):
                         print('Not Accepted. ')
-                        print('hand')
-                        print(hand)
-                        print('field')
-                        print(field)
                         print('info')
                         print(' rev? : ' + str(info['revoluted']))
                         print(' binded? : ' + str(info['binded']))
                         print(' flushed? : ' + str(info['flushed']))
                         print(' have_joker? : ' + str(info['have_joker']))
+                        print('hand')
+                        print(hand)
+                        print('field')
+                        print(field)
                         print('submit')
                         print(submit)
                     """
-                    else:
-                        if np.alltrue(submit == 0):
-                            print('skip')
-                            print('hand')
-                            print(hand)
-                            print('field')
-                            print(field)
-                            print('info')
-                            print(' rev? : ' + str(info['revoluted']))
-                            print(' binded? : ' + str(info['binded']))
-                            print(' flushed? : ' + str(info['flushed']))
-                            print(' have_joker? : ' + str(info['have_joker']))
-                            print('submit')
-                            print(submit)
-                        ok = True
-                        # print('Accepted. ')
-                    """                
                 recv = recvTable()
                 field[...] = recv[:5, :]
 
@@ -183,22 +157,47 @@ def sendTable(table):
     sock.sendall( table_struct.pack(*send_list) )
 
 
-def finishAllGame(n):
-    return n == 2
+def finishAllGame(game_state):
+    """
+    全ゲームが終了したか判定する
 
-def finishOneGame(n):
-    return n > 0
+    Parameters
+    ----------
+    game_state: int
+        ゲームの状態フラグ
+    """
+    return game_state == 2
+
+def finishOneGame(game_state):
+    """
+    1ゲームが終了したか判定する
+
+    Parameters
+    ----------
+    game_state: int
+        ゲームの状態フラグ
+    """
+    return game_state > 0
 
 def canExchange(table):
+    """
+    カード交換で選ぶことが可能か判定する
+
+    Parameter
+    ---------
+    table: np.array((8,15))
+        サーバから送られてくる配列
+    """
     return table[5][1] > 0
 
 def canSubmit(table):
+    """
+    カード提出が可能か判定する
+
+    Parameter
+    ---------
+    table: np.array((8,15))
+        サーバから送られてくる配列
+    """
     return table[5][2] > 0
 
-# def makeDataFrame(table):
-#     return pd.DataFrame(table[:5,:], 
-#            index   = pd.Index(cardTableIndex, name = 'Suit'), 
-#            columns = pd.Index(cardTableCols,  name = 'Rank'))
-
-if __name__ == '__main__':
-    connect('neko')

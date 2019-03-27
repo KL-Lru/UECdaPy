@@ -1,47 +1,142 @@
 import numpy as np
 
-# Filters -----
-# フィルタ適応する
+# フィルタに関する関数群
+
+
 def applyFilter(cards, field_info, info):
-    # 提出出来ないカードを除外する
-    filtered_cards = lowExclude(cards, max(field_info['rank']))
+    """
+    フィルタ適応により提出不能なカードを手札から除外する
+    非革命時にのみ適応可
+
+    Parameters
+    ----------
+    cards: np.array((5,15))
+        持っているカードを示す配列
+    field_info: dict
+        場のカードの情報 ref:  parser
+    info: dict
+        サーバから送られてくる情報 ref:  parser
+
+    Return
+    ------
+    filtered_cards: np.array((5,15))
+        現在の場に対して提出可能になりうるカードを示す配列
+    """
+    filtered_cards = excludeLow(cards, max(field_info['rank']))
     if info['binded']:
-        filtered_cards = lockOnly(filtered_cards, field_info['suit'])
+        filtered_cards = excludeNotInSuit(filtered_cards, field_info['suit'])
     return filtered_cards
+
 
 def applyRevFilter(cards, field_info, info):
-    # 提出出来ないカードを除外する(革命時用)
-    filtered_cards = highExclude(cards, min(field_info['rank']))
+    """
+    フィルタ適応により提出不能なカードを手札から除外する
+    革命時にのみ適応可
+
+    Parameters
+    ----------
+    cards: np.array((5,15))
+        持っているカードを示す配列
+    field_info: dict
+        場のカードの情報 ref:  parser
+    info: dict
+        サーバから送られてくる情報 ref:  parser
+
+    Return
+    ------
+    filtered_cards: np.array((5,15))
+        現在の場に対して提出可能になりうるカードを示す配列
+    """
+    filtered_cards = excludeHigh(cards, min(field_info['rank']))
     if info['binded']:
-        filtered_cards = lockOnly(filtered_cards, field_info['suit'])
+        filtered_cards = excludeNotInSuit(filtered_cards, field_info['suit'])
     return filtered_cards
 
+# Filters -----
 # By rank ---
-def lowExclude(cards, rank):
-    # rank以下のカードを除外する
-    filtered_table = np.array(cards, dtype = int)
-    filtered_table[:, :rank+1] = 0
-    return filtered_table
 
-def highExclude(cards, rank):
-    # rank以上のカードを除外する
-    filtered_table = np.array(cards, dtype = int)
-    filtered_table[:, rank:] = 0
-    return filtered_table
 
-# By value ---
-def nonNExclude(cards, n):
-    # 値がn以外の物を除外する
-    return (cards == n) * n
+def excludeLow(cards, rank):
+    """
+    強さがrank以下のカードをcardsから除外する
 
-def lessNExclude(cards, n):
-    # 値がn未満のカードを除外し、n以上の物をnにする
-    return (cards >= n) * n
+    Parameters
+    ----------
+    cards: np.array((5,15))
+        持っているカードを示す配列
+    rank: int
+        除外する強さの基準値
+
+    Return
+    ------
+    filtered_cards: np.array((5,15))
+        フィルタを適用した後の配列
+    """
+    filtered_cards = np.array(cards, dtype=int)
+    filtered_cards[:, :rank+1] = 0
+    return filtered_cards
+
+
+def excludeHigh(cards, rank):
+    """
+    強さがrank以上のカードをcardsから除外する
+
+    Parameters
+    ----------
+    cards: np.array((5,15))
+        持っているカードを示す配列
+    rank: int
+        除外する強さの基準値
+
+    Return
+    ------
+    filtered_cards: np.array((5,15))
+        フィルタを適用した後の配列
+    """
+    filtered_cards = np.array(cards, dtype=int)
+    filtered_cards[:, rank:] = 0
+    return filtered_cards
 
 # By suit ---
-def lockOnly(cards, suit):
-    # suit以外のカードを除外する
-    filtered_table = np.zeros_like(cards, dtype = int)
-    filtered_table[suit, :] = cards[suit, :]
-    return filtered_table
 
+
+def excludeNotInSuit(cards, suit):
+    """
+    絵柄がsuitに含まれないカードをcardsから取り除く
+
+    Parameters
+    ----------
+    cards: np.array((5,15))
+        持っているカードを示す配列
+    suit: list(int)
+        除外しない絵柄を示すリスト
+
+    Return
+    ------
+    filtered_cards: np.array((5,15))
+        フィルタを適用した後の配列
+    """
+    filtered_cards = np.zeros_like(cards, dtype=int)
+    filtered_cards[suit, :] = cards[suit, :]
+    return filtered_cards
+
+# By value ---
+
+
+def excludeNotN(table, n):
+    """
+    値がnでない要素をcardsから取り除く
+
+    Parameters
+    ----------
+    table: np.array((5,15))
+        組や階段の構成を示す配列
+    n: int
+        除外しない基準値
+
+    Return
+    ------
+    filtered_table: np.array((5,15))
+        フィルタを適用した後の配列
+    """
+    return (table == n) * n

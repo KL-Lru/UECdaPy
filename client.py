@@ -2,8 +2,6 @@ from connection import connect
 from strategy import *
 import numpy as np
 
-name = 'Qualia'
-
 class Client(object):
     def __init__(self, name = 'default'):
         self.name   = name
@@ -29,7 +27,7 @@ class Client(object):
         # 自分が提出する番にのみ呼び出される
 
         self.hands[...] = hands
-        self.info      = info
+        self.info       = info
         self.submit.fill(0)
 
         if info['flushed']:
@@ -47,7 +45,7 @@ class Client(object):
 
     def updateField(self, field, info):
         # 場の情報を更新する
-        # プレイヤがカードを提出する前に呼び出される
+        # プレイヤ(自分以外を含む)がカードを提出する前に呼び出される
         
         self.field[...] = field
         self.info       = info
@@ -61,5 +59,5 @@ class Client(object):
         self.index = index
 
 if __name__ == '__main__':
-    client = Client(name)
+    client = Client('default')
     connect(client)
